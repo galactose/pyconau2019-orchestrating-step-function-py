@@ -700,7 +700,7 @@ layout: standard
 
 ### Inputs and Outputs
 - Execution parameters set the State Machine object initially
-- Data is persisted between states with `input` object
+- Data is persisted between states with `event` object
 - State context is held in `context` object
 - Environment defaults can be set in Cloudformation
 - Remove data that is not being used downstream
@@ -710,7 +710,7 @@ layout: standard
 - `InputPath` or `Parameters` to limit what goes into a Lambda
 
 ### Alternatives
-- CFN and state definition parameters
+- CFN and state definition parameter attribute
 - SSM parameters
 - S3 data
 
