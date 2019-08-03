@@ -6,15 +6,15 @@
     <meta name="description" content="A simple, in-browser, markdown-driven slideshow tool." />
     <title>Orchestrating complex (not complicated) tasks using AWS serverless and Python - PyConAU 2019</title>
     <style>
-      @import url(https://fonts.googleapis.com/css?family=Droid+Serif);
-      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Open+Sans);
+      @import url(https://fonts.googleapis.com/css?family=Raleway);
       @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
 
       body {
-        font-family: 'Droid Serif';
+        font-family: 'Open Sans';
       }
       h1, h2, h3 {
-        font-family: 'Yanone Kaffeesatz';
+        font-family: 'Raleway';
         font-weight: 400;
         margin-bottom: 0;
       }
@@ -160,7 +160,7 @@ PyConAU 2019
 
 Good afternoon everyone, my name is Michael Kelly, before we kick off I would just like to say thank you to PyCon for having me here and thankyou to Versent, who I work for, for letting me attend great conferences like this one.
 
-A little about me, I am a team lead in a cloud product division at Versent, focussing in infrastructure orchestration.
+A little about me, I am a team lead in a cloud product division at Versent, focussing on infrastructure orchestration.
 
 Versent provides Mode 2, autoscaling, autohealing cloud architecture solutions using AWS.
 
@@ -170,7 +170,7 @@ Let me know and I will be very happy to put you in contact with someone.
 
 ---
 template: inverse
-# Why?
+## Why?
 
 ???
 So why did I choose this subject?
@@ -179,11 +179,11 @@ AWS is a big part of my career at the moment, Versent *almost* exclusively work 
 
 Over the last nine months I've been working with Step Functions, compared to many other ways I have tried to orchestrate the build and tear down of  applications Step Functions have by far been the most powerful, cheapest and complete solution.
 
-The service is very powerful and can do a lot but it is easy to get yourself stuck, so I hope to go through some of the ways that can happen today and provide some service native patterns to scale more gracefully and build great services.
+The service is very powerful and can do a lot but it can be easy to get yourself stuck, so I hope to go through some of the ways that can happen today and provide some service native patterns to scale more gracefully and build great services.
 
 ---
 template: inverse
-# What does this have to do with Python and why are you bothering us all with this?
+## What does this have to do with Python and why are you bothering us all with this?
 
 ???
 
@@ -200,7 +200,7 @@ Step Functions are an extra layer on top of Lambda and requires a few more simpl
 ---
 template: standard
 
-# In this talk
+## In this talk
 
 <br>
 <br>
@@ -253,7 +253,7 @@ The name of this title is taken from when you make the call to `import this` in 
 
 ---
 template: inverse
-# Audience
+## Audience
 
 ???
 So out of curiousity, a show of hands, other than being Python engineers does anyone host workloads in AWS?
@@ -263,7 +263,7 @@ Anyone working with serverless, or already doing thing with Step Functions? Nice
 ---
 layout: standard
 
-# Lambda
+## Lambda
 
  - Cheaper than hosting servers
  - Little configuration
@@ -303,7 +303,7 @@ manage the state of the servers with SSM Run Commands and perform infrastructure
 
 ---
 layout: standard
-# Lambda Functions
+## Lambda Functions
 
 <br>
 
@@ -326,7 +326,7 @@ def lambda_handler(event, context):
 
 What's the standard operating pattern for Lambda?
 
-So if you've not used Lambda before the code part of the service essentially has a referenced entry point where you can take in some arguments from an external service or user a dictionary usually labelled `event`, perform some work in the handler or called functions or modules imported into the package and return a computational result.
+So if you've not used Lambda before the code part of the service essentially has a referenced entry point where you can take in some arguments from an external service into a dictionary usually labelled `event`, perform some work in the handler or called functions or modules imported into the package and return a computational result.
 
 In Lambda you can interact with the AWS service APIs via Boto and perform tasks useful to the cloud infrastructure.
 
@@ -351,8 +351,6 @@ layout: standard
    - deploy
    - graceful clean up
  - Automated testing w/ metric tracking
- - Managing server migration
- - Compliance verification
  - Environment bootstrapping
  - Batch processing
  - ETL
@@ -366,21 +364,19 @@ The primary object of Step Functions is the State Machine.
 
 A State Machine is implemented in a similar fashion to a formal state machine, where you have sets of states with transitions connecting them, an initial state, accepting states and potential trap states.
 
-The way these state machines differ from the formal is the initial state variables are dictated by an execution payload when being triggered by some event and each state has extra behaviour that can be invoked.
+This is where the analogy to the formal state machine breaks down, the initial state variables are dictated by an execution payload when being triggered by some event and each state has extra behaviour that can be invoked.
 
 So what are State Machines general use cases?
 
-I've found them to be really good at building and tearing down cloud applications
+I've found them to be really good at building and tearing down cloud applications in a factory pattern,
 
-Managing Server Migration, you have servers on prem being imaged and brought over, manage the process with a state machine
-
-Performing infrastructure compliance checking, if you've seen center of internet security AWS benchmarks you can implement to manage compliance checking.
+They can be used to perform end to end testing of your application deployment.
 
 You can manage the bootstrap of AWS accounts with resources needed for your project
 
-These are just a few uses of Step Functions. The service primitives provided by Step Functions gives you the control you need to orchestrate cases like this. Essentially any simple orchestration task that can happen within the span of a year can work within this framework.
+So this is just a few uses of Step Functions. The service primitives provided by the service gives you the control you need to build systems like this. Essentially any simple orchestration task that can happen within the span of a year can work within this framework.
 
-If your job takes longer than a year there are ways around this but you might have bigger problems *jokes*.
+If your job takes longer than a year there are ways around this but you will need to architect for it.
 
 ---
 layout: standard
@@ -392,8 +388,9 @@ layout: standard
  - Parallel: Sub-state machine with execution branches
  - Pass: No-op, modify global dictionary
  - Task: Execute a Lambda function
+ - Succeed/Fail: Indicate execution status
 
-<center><img src="img/pyconau-img-1.png" width="600" height="375" alt="Step Function graph"></center>
+<center><img src="img/state-machine-graph-example.png" width="510" height="310" alt="State Machine graph example"></center>
 
 ???
 
@@ -407,11 +404,11 @@ Parallel states which allow execution to occur over two or more branches of the 
 
 Pass states allow you to perform meta-actions like modify the information being passed between states or halt on completion in a parallel branch.
 
-The state you will be using the most is likely the task state that executes a Lambda function, complete with inputs from previous states and outputs out to successive states.
+The state you will be using the most is likely the task state that triggers an execution of a service integration. The most popular and one I will focus on is Lambda, complete with inputs from previous states and outputs out to successive states.
 
 All of these states can also be augmented with exception catch and retry logic, which I will cover later.
 
-Having this you can see some pretty complex behaviour can be expressed with State Machines, you can set waiting loops, have contingency states when things fail, do tasks in parallel
+Having this you can see some pretty complex behaviour can be expressed with State Machines, you can set waiting loops, have contingency states when things fail, perform tasks in parallel
 
 the main thing really though as the name suggests State Machines provide the piece that was missing from Lambda, the ability to persist state.
 
@@ -445,7 +442,7 @@ layout: standard
 
 <br>
 
-## What don't you get?
+## CI/CD integration
 
 - Still need CI/CD
   - Your CI/CD will be less tightly coupled to implementation logic
@@ -457,13 +454,13 @@ layout: standard
 
 So thats all well and good but why would I use this?
 
-The service is very scalable, it natively allows parallel executions so it's listening for execution requests and can handle a million open requests.
+The service is highly scalable, it natively allows parallel executions so it's listening for execution requests and can handle a million open requests.
 
-You can use Step Functions as the entrypoint into the logic of your orchestration and be able to handle edge cases when unexpected behaviour arises 
+You can use Step Functions as the entry point into the logic of your orchestration and be able to handle edge cases when unexpected behaviour arises 
 
 You are getting all of the benefits of using Lambda, you're not wrestling with server configuration or Operating System implementation details
 
-So saying this you still need CI/CD solutions but you can easily move away from Orchestration "god boxes" like Jenkins that can do too much
+So saying this you still need CI/CD solutions but you can easily move away from Orchestration "god boxes" that can do too much
 
 You can setup light weight agents that just have permissions to execute Step Functions, which have permissions bound to their respective Lambda functions so there is less chance of the permissions given to the agent being used in an unintended way.
 
@@ -480,9 +477,8 @@ layout: standard
  - Lambda source
  - Meta-data files
 
-<br>
 
-``` text
+``` bash
   cfn/
     state-machine-deploy.yaml
     state-machine-cleanup.yaml
@@ -511,20 +507,16 @@ The Lambda service requires generating a bundled package containing your source 
 
 You can define an interface for your project repo with a Makefile, with actions like build, deploy, install, etc. This way whatever is deploying your services has a common interface to work with.
 
-
-Even with just this you can build a microservice framework where each state machine provides some orchestrated service, using them as factories to produce application resources.
-
-These factories can be deployed in a mirrored fashion in each of your environments for testing, integration, staging and production for testing purposes. --
-
-With this in mind you decide this would be a great way to deploy versions of your application, using the state machines as application factories and you begin your project.
 ---
 layout: standard
+class: middle
 
 ```bash
 aws cloudformation package \
   --s3-bucket $(CONFIGURATION_BUCKET) \
   --template-file cfn/state-machine-deploy.yaml \
   --output-template-file state-machine-deploy.packaged.yaml
+
 aws cloudformation deploy \
   --s3-bucket $(CONFIGURATION_BUCKET) \
   --template-file state-machine-deploy.packaged.yaml \
@@ -538,6 +530,15 @@ aws cloudformation deploy \
   --tags version=$(VERSION) environment=$(ENVIRONMENT) branch=$(branch)
 ```
 
+???
+With all of this defined your deploy script simply requires calls to the AWS CLI from the Makefile to trigger the creation of your infrastructure as code.
+
+Even with just this project template you can build a microservice framework where each state machine provides some orchestrated service and using them as factories to produce application resources.
+
+These factories can be deployed in a mirrored fashion in each of your environments for development, integration, staging and production for testing purposes.
+
+With this in mind you go ahead and deploy versions of your application, using the state machines as application factories and you begin your project.
+
 ---
 layout: standard
 
@@ -546,48 +547,29 @@ layout: standard
 <br>
 
 - Code projects start with the best intentions
+- Organic growth
 - Happy path code
 - Code smells
-- Service build takes 30 minutes
-- Abstract states
+- Service build takes 30 minutes, go get a coffee
 - Service dependency problems
-- Why is this service giving me 500s?
-- Non-deterministic service timeout
+- Why am I getting 500s?
+- Intermittent application timeout
 - Service resource limit exceeded
-- Team crying corner
 - How do you get back on track?
 
 <br>
 
-```text
+<center>
 Pain is never out of season if you go shopping for it -- Tim Ferris
-```
+</center>
 
 ???
 
 You now theoretically have enough to start a project, you have your requirements and a general set of tools.
 
-Your project manager has the deadline set and all the stakeholders have committed to it and you're ready.
+Like many projects before it, it grows organically. More features get tacked on to meet requirements.
 
-Without much planning you jump into development because that always works.
-
-You rush forward to develop something that manages the deployment for you
-
-What you write is very *happy path*
-
-???
-
-So obviously this is great, you've set up your project repository and you are provisioning factory state machines that handles requests for other services in your project.
-
-The other developers in your team can also deploy their own versions of the state machine application factory in your lab so you can work on features in isolation
-
-- orchestration process takes 20 minutes, the servers are configured on boot
-- sometimes it breaks in the middle because of an asynchronous task that hasn't finished
-- to maximise reuse you create abstract states that build resources based on parameters
-- all information is tracked via the global dictionary, you need to pass a lot
-- if predictable resources don't exist in 20 minutes you assume the build has failed
-- clean up is not completing correctly with the consequence of resources silently building up, priming it for an account resource limits being exceeded
-- at this point you're in your team crying corner (your team has a designated crying corner now), wondering where you went wrong in your life to get yourself here.
+Very slowly you end up with a bit of a beast of a solution with one or more of the problems listed above...
 
 A lot of pressure can be put on a project, quality can fall by the wayside and best practices can go out the window to get a first iteration of a project completed.
 
@@ -613,10 +595,10 @@ template: standard
 <br>
 
 - Linting: https://github.com/python/black
-- Unit tests: Standard library, pytest 
+- Unit-tests: Standard library, pytest 
 - Coverage reports
 - Git hooks
-- Git apps and integrations
+- Github apps and integrations
 
 ???
 
@@ -624,7 +606,7 @@ I'll start with your standard project grooming, if you have been a developer for
 
 - Life is too short to worry about linting, I really like the Go pattern of enforcing a formatting style, black is a great way to do the same thing. The associated Henry Ford quote sums it up pretty well "you can have it in any colour as long as it's black"
 
-- Obviously you are unittesting, whether this is just using the standard library or if you are using pytest or something like Hypothesis
+- Obviously you are unit-testing, whether this is just using the standard library or if you are using pytest or something like Hypothesis
 
 - Setup coverage reports to get an idea of how well covered your code is with tests. Your reports can be bundled with releases, even if you are not enforcing a coverage percentage floor you can let people decide to use your release based on whats available.
 
@@ -640,7 +622,10 @@ layout: standard
 <br>
 
 - State definitions are in JSON, no YAML option
-- Undefined variable errors come up in grey
+- Choice state:
+  - State Machine checks for first match in Choices attribute
+  - Undefined variable errors come up in grey and halt
+  - No match sends execution to choice state default
 - On State Machine update existing executions use the old version
 
 ???
@@ -718,14 +703,14 @@ layout: standard
 - Data is persisted between states with `input` object
 - State context is held in `context` object
 - Environment defaults can be set in Cloudformation
-- Remove keys that are not being used downstream
+- Remove data that is not being used downstream
 
 ### Path Control
 - `OutputPath` to filter what comes out of a Lambda
 - `InputPath` or `Parameters` to limit what goes into a Lambda
 
 ### Alternatives
-- CFN pass states
+- CFN and state definition parameters
 - SSM parameters
 - S3 data
 
@@ -733,25 +718,21 @@ layout: standard
 
 Data flow is a big portion of managing State Machines so here are a couple of general tips I have come across to help keep State Machines manageable.
 
-Essentially, state machines communicate between states with a JSON object that translates in Python to a dictionary that is available in the Lambda code.
-
-It is passed in through the first argument of the Lambda function and to continue to be available in the next downstream Lambda function it needs to be returned.
+As mentioned earlier, state machines communicate between states with a JSON object that translates in Python to a dictionary.
 
 All branches of your Lambda function code has to flow to a return statement passing back the results that go on to the next object downstream
 
-The initial state values of the State Machine is dictated by the execution arguments first passed into it.
-
-As you can imagine keeping the object small between states will simplify your State Machine and make it easier to track what is happening state to state, not passing on values that are unnecessary will be important.
+As you can imagine keeping the object small between states will simplify your State Machine and make it easier to track what is happening state to state, not passing on values that are unnecessary will assist with this.
 
 You can manage this with the `OutputPath` option in the State definition, you can limit which portion of the output gets sent to the next state so you can drill down to only have necessary values.
 
-Similarly you can use `InputPath` or `Parameters` in the state definition to limit what goes into a states input, which can help with maintaining contexts between your states.
+Similarly you can use `InputPath` in the state definition to limit what goes into a states input, which can help with maintaining contexts between your states.
 
 Another solution to this problem is to find ways to pass data without using the input object.
 
 There are three ways I have found to do this:
 
- - If you are using infrastructure as code and building your State Machine with Cloudformation you can define pass states which let you modify the event object in place to inject variables. This is useful if you have a test environment and have multiple branches of the same resources being tested next to each other. You can let the Cloudformation know about the branch you are on to scope resources and you can pass the value into the State Machine via the pass state.
+ - If you are using infrastructure as code and building your State Machine with Cloudformation you can add to the `Parameters` state definition attribute which let you modify the state JSON object in place to inject variables. This is useful if you have a test environment and have multiple branches of the same resources being tested next to each other. You can let the Cloudformation know about the branch you are on to scope resources and you can pass the value into the State Machine without having to pass it into the state machine on execution.
 
  - You can store variables that are related to the account or environment you are operating from in Systems Manager parameters. Doing this you can bind these values to one place, and make reference to them in other parts of your orchestration and not pollute your dictionaries.
 
@@ -809,7 +790,9 @@ layout: standard
 - Parallel Service interdependencies
 - Dynamic parallelism, resources and billing
 
-**insert picture of step function calling another step function**
+<center>
+<img src="img/parallel-state.png" width="275" height="275" alt="Step Function parallelism">
+</center>
 
 ???
 
@@ -819,7 +802,7 @@ Step functions actually provide a few different levels of parallelism you can ta
 
 What I described previously was the state primitive for parallelism, this is a type of "static" parallelism where the number of threads of execution is already known and are part of the State Machine.
 
-**insert example here**
+An example of this is if you have a state machine that manages the bootstrap of an AWS account you use for orchestration. You know the account needs an S3 bucket to manage configuration and a specific DNS hosted zone. Each can be provisioned in parallel as neither has a dependency on the other. The parallel state can be used in this case. 
 
 The next way to handle parallelism is by nesting State Machines, you can theoretically have x concurrent executions of a state machine so you can hand off x tasks to another state machine that can handle each uniformly and pass back the results through some shared medium like SQS or S3.
 
@@ -827,7 +810,7 @@ Where the previous method of parallelism is static this is more dynamic since it
 
 A good example of dynamic parallelism is for migrating servers. I spent some time a year back working on the automation of server migrations using a recent tool called CloudEndure. We had manager scripts that would execute the same worker scripts once for each server being migrated. Using Step Functions you could have a managing State Machine that calls a worker migration state machine that performs all the underlying tasks of migration into AWS without knowing at the beginning how many servers were being moved over in that wave.
 
-Finally AWS recently released activity workers and callback patterns. I personally haven't used these but you can treat state machines as activities, where a manager process will hand off a token to a worker process, the manager can then block until the worker process has performed its task. It then returns it's token indicating completion.
+Finally AWS recently released activity workers. I personally haven't used the service but you can treat state machines as activities, where a manager process will hand off a token to a worker process, the manager can then block until the worker process has performed its task. It then returns it's token indicating completion.
 
 ---
 template: inverse
@@ -839,13 +822,17 @@ template: inverse
 
 layout: standard
 
-## Refactor to Wait in the step function
+## Refactor to wait in the step function
+
+<br>
 
 - Don't block in your Lambda function
 - wait/choice states
 - Callback patterns
 
-*Insert picture of a wait/try loop*
+<center>
+<img src="img/wait-loop.png" width="325" height="300" alt="Step Function wait loop">
+</center>
 
 ???
 Another easy one, if you are moving over to Step Functions from a script or some other method of orchestrating, if you wait for resources do it in the Step Functions. They are designed to do it. Wait state primitives exist. Lambda functions can execute for a maximum for 15 minutes but you are being charged for those 15 minutes
@@ -853,40 +840,6 @@ Another easy one, if you are moving over to Step Functions from a script or some
 Here's an example of a pattern we use for waiting for resources to become available, a simple wait, status check, choice group that blocks until something is ready or fails or times out. Here I'm using in the bootstrap of an AWS account with standard infrastructure resources for a disaster recovery scenario. If we ever need to provision an AWS account I can be certain all the required resources are available using state machines.
 
 Another consideration with Step functions is if you are waiting for human approval, this is supported in Step Functions with the callback pattern. You can implement states that block until a token is returned
-
----
-
-template: inverse
-## Ground States
-
-<i class="em em-alarm_clock"></i><i class="em em-octagonal_sign"></i>
-
----
-
-layout: standard
-## Ground States in Reality
-
-<br>
-
-- Make states as grounded as possible, resist the urge to get abstract
-- Debugging is easier
-
-<br>
-
-*Insert two graphs here, one with an abstract deployer state, another with a widget a and widget b deployer*
-
-???
-
-One of the urges I had was having abstract states that manage all behaviours of *x* type.
-
-An example of this is having a deployer state that takes a cloudformation template and feeding it a series of templates and parameters to build each.
-I would recommend resisting this urge as it makes debugging via the State Machine more difficult. As you have seen these graphs can be clicked on to find the details of what happened at each state. While you have the full trace of behaviour down the bottom.
-
-Having a definite flow in your graph and resisting the urge to have your transition graph be too circular gives you the ability to point out exactly where your machine has failed when building.
-
-We use Step Functions as factories for provisioning a lot of resources but each of our factories have specific tasks.
-
-Ignore this advice if you are selling a platform built on making abstract factories. Its possible to get abstract, I'm saying only get complex if you need to be.
 
 ---
 
@@ -910,7 +863,7 @@ layout: standard
     "ErrorEquals": ["States.Timeout"],
     "IntervalSeconds": 3,
     "MaxAttempts": 3,
-    "BackoffRate": 1.5
+    "BackoffRate": 2
   }
 ]
 
@@ -934,7 +887,7 @@ An example of this is checking to see if the resources a state is responsible fo
 
 Depending on how you want to handle this you can perform an update on the second pass or just skip creation. This would make certain your resources are aligned with the latest code changes and be idempotent.
 
-So here you can see a snippet of a state definition that applies retry logic if the bound Lambda function has been running for longer than expected. It tries three times with 3 seconds as a base interval, adding 1.5 seconds each time for exponential back off.
+So here you can see a snippet of a state definition that applies retry logic if the bound Lambda function has been running for longer than expected. It tries three times with 3 seconds as a base interval, adding 2 seconds each time for exponential back off.
 ---
 
 ## Service Exception Handling
@@ -977,9 +930,9 @@ You can also implement default logic, if you want to explicitly raise time out e
 
 ---
 
-## Catch
+## Service Exception Handling
 
-Transition to a handler state if certain exceptions are thrown
+Transition to a handler state if certain exceptions are caught
 
 ```json
 "States": [
@@ -1022,7 +975,7 @@ layout: standard
 
 - Build out to private libraries
 - Share to PyPi/Private
-- Associate relevant Unittests, Coverage
+- Associate relevant unit-tests, Coverage
 
 ## Library Boilerplate
 
@@ -1046,6 +999,17 @@ setup(
 python3 setup.py bdist_wheel
 ```
 
+???
+
+The great thing about a state machine is it is comprised of a bundle of lambda functions that operate like a standard python module.
+
+As with any project you can make reference to any library you have available you have pulled in to site-packages, bundled into the code zip and make available to the Lambda service.
+
+If you have built out an isolated piece of functionality you want to use across multiple factories or services, bundle it into your own library and pull it in when building.
+
+An example of this is if you had some wrapper helpers for tracking deployments in Slack. It would make sense that a few of your services may use this functionality.
+
+You can move this code over to it's own repository, create its own setup.py with the appropriate meta data and make it publically or privately available.
 ---
 
 layout: standard
@@ -1074,15 +1038,7 @@ zip -jrq9 lambda.zip src/*
 
 ???
 
-The great thing about a state machine is it is comprised of a bundle of lambda functions that operate like a standard python module.
-
-As with any project you can make reference to any library you have available you have pulled in to site-packages, bundled into the code zip and make available to the Lambda service.
-
-If you have built out an isolated piece of functionality you want to use across multiple factories or services, bundle it into your own library and pull it in when building.
-
-An example of this is if you had some wrapper helpers for tracking deployments in Slack. It would make sense that a few of your services may use this functionality.
-
-You can move this code over to it's own repository, create its own setup.py with the appropriate meta data and make it publically or privately available. Once this is available remotely you can pull these helpers into the pip virtual environment and they can be bundled into the Lambda zip bundle. From here these can be uploaded and referenced in your cloudformation, integrating them into your orchestration.
+Once this is available remotely you can pull these helpers into the pip virtual environment and they can be bundled into the Lambda zip bundle. From here these can be uploaded and referenced in your cloudformation, integrating them into your orchestration.
 
 This is very powerful as out of the box you get libraries that can be used across your state machines, if you have designed nice abstractions for your modular resources libraries are a good place to store and reuse these.
 
@@ -1092,6 +1048,10 @@ template: inverse
 ## Debugging
 
 <i class="em em-ant"></i><i class="em em-bug"></i><i class="em em-beetle"></i>
+
+???
+
+Once you get your code into a state machine and its running and something goes wrong how to you work out what happened?
 
 ---
 
@@ -1111,11 +1071,9 @@ layout: standard
 
 ???
 
-Once you get your code into a state machine and its running and something goes wrong how to you work out what happened?
-
 If you followed some of these steps up until now things will be clearer.
 
-Your unit tests can catch a lot of issues so make sure you have those. Integration tests will catch even more.
+Your unit-tests can catch a lot of issues so make sure you have those. Integration tests will catch even more.
 
 If you are working in a test environment you can diagnose a lot of runtime issues in the service
 
@@ -1136,28 +1094,28 @@ We currently have this in our integration environment watching our development b
 ---
 class: center, middle
 
-<img src="img/pyconau-img-state-machine-dash.png" width="900" height="500" alt="Step Function graph">
+<img src="img/state-machine-dashboard.png" width="900" height="500" alt="State Machine dashboard">
 
 ???
 
 ---
 class: center, middle
 
-<img src="img/pyconau-img-state-machine-dashboard.png" width="900" height="425" alt="Step Function graph">
+<img src="img/state-machine-dashboard-details.png" width="900" height="425" alt="State Machine dashboard data">
 
 ???
 
 ---
 class: center, middle
 
-<img src="img/pyconau-img-execution-event-hist.png" width="900" height="500" alt="Step Function graph">
+<img src="img/execution-event-history.png" width="900" height="450" alt="Execution trace history">
 
 ???
 
 ---
 class: center, middle
 
-<img src="img/pyconau-img-execution-event-history.png" width="900" height="450" alt="Step Function graph">
+<img src="img/execution-event-history-expand.png" width="900" height="500" alt="Execution trace history details">
 
 ???
 
@@ -1171,8 +1129,8 @@ class: middle
 
 #### <span class="fa fa-file fa-fw"></span> Slides: https://github.com/galactose/pyconau2019-orchestrating-step-function-py
 #### <span class="fa fa-github fa-fw"></span> Github: https://github.com/galactose
-#### <span class="fa fa-address-card fa-fw"></span> Who am I: https://ashiny.cloud/about
-#### <span class="fa fa-envelope fa-fw"></span> mail: michael.kelly.au@gmail.com
+#### <span class="fa fa-address-card fa-fw"></span> Who am I: https://ashiny.cloud/page/about/
+#### <span class="fa fa-envelope fa-fw"></span> Mail: michael.kelly.au@gmail.com
 
 <br>
 
@@ -1190,7 +1148,7 @@ I've given a run down of what the service is, how it works and some details of t
 
 If you try it and your project grows you might need to implement some measures to help scale it out, which I covered.
 
-This wasn't a complete guide to Step Functions, but is hopefully enough for anyone considering using it.
+This wasn't a complete guide to Step Functions, it is a very feature rich service, but is hopefully enough for anyone considering using it.
 
 I've linked to the slides here if anyone is curious.
 
