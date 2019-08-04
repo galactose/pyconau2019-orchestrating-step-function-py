@@ -402,7 +402,7 @@ choice states where you can use the inputs and outputs of other states to work o
 
 Parallel states which allow execution to occur over two or more branches of the state machine.
 
-Pass states allow you to perform meta-actions like modify the information being passed between states or halt on completion in a parallel branch.
+Pass states allow you to perform meta-actions like modify the information being passed between states.
 
 The state you will be using the most is likely the task state that triggers an execution of a service integration. The most popular and one I will focus on is Lambda, complete with inputs from previous states and outputs out to successive states.
 
@@ -501,8 +501,6 @@ As engineers we always want to automate everything as much as possible, so using
 
 Cloudformation templates is generally your best option for your AWS resources.
 
-This means you can make each progressive testing environment be a mirror of the others and you can stamp out feature testing environments if you want.
-
 The Lambda service requires generating a bundled package containing your source code, if you've used Lambda you will be familiar with this, which means the source and the bundling functionality can also be kept in the repository with your infrastructure definition.
 
 You can define an interface for your project repo with a Makefile, with actions like build, deploy, install, etc. This way whatever is deploying your services has a common interface to work with.
@@ -573,8 +571,6 @@ Very slowly you end up with a bit of a beast of a solution with one or more of t
 
 A lot of pressure can be put on a project, quality can fall by the wayside and best practices can go out the window to get a first iteration of a project completed.
 
-With this in mind what could you put in place to make the project better?
-
 ---
 
 template: inverse
@@ -608,7 +604,7 @@ I'll start with your standard project grooming, if you have been a developer for
 
 - Obviously you are unit-testing, whether this is just using the standard library or if you are using pytest or something like Hypothesis
 
-- Setup coverage reports to get an idea of how well covered your code is with tests. Your reports can be bundled with releases, even if you are not enforcing a coverage percentage floor you can let people decide to use your release based on whats available.
+- Setup coverage reports to get an idea of how well covered your code is with tests. Your reports can be bundled with releases, even if you are not enforcing a coverage percentage floor you can let people decide to use your release based on whats available and show you are performing due diligence.
 
 - Git offers a lot of workflow automation and hooking linting and other types of checking into your source control solution can make these things happen behind the scenes
 
@@ -617,7 +613,7 @@ I'll start with your standard project grooming, if you have been a developer for
 ---
 layout: standard
 
-## Service Cautions
+## General Service Cautions
 
 <br>
 
@@ -634,7 +630,7 @@ Just a few notes about working with the Step Functions specifically:
 
 - Defining a state machine needs to be done in JSON, whereas cloudformation can generally be in YAML, which is a little inconsistent but not a deal breaker
 
-- If a variable referenced in your state definition is undefined in the states JSON object at that point your state machine will stop. This seems to be because of the coupling between Lambda and the State Machines. This can trip you up if there are discrepancies between your state definition and your Lambda code and you won't find out until runtime.
+- If a variable referenced in your state definition is undefined in the states JSON object at that point your state machine will stop. This seems to be because of the coupling between Lambda and the State Machines. This can trip you up if there are discrepancies between your state definition and your Lambda code and you won't find out until runtime. On the state machine dashboard this will come up as a halted state in grey.
 
 - If you update your state machine while there are executions (via something like cloudformation) the previous executions will continue to operate on the original version (could be an issue for your service in deployment for long running executions)
 
@@ -684,8 +680,6 @@ It might even be worse and you may be orchestrating in the wrong AWS account, wh
 The pre-flight check can be implemented as an initialisation state at the beginning of your execution, you can do things like collect the IDs of necessary resources, work out environment specific edge cases, like if your development environment runs extra tests or has more verbose logging flags.
 
 You can validate the execution parameters and be certain what's being passed in meets an expected contract.
-
-**Show a graph with an additional state added to the front and some lambda code representing some initialisation logic**
 
 ---
 template: inverse
@@ -822,7 +816,7 @@ template: inverse
 
 layout: standard
 
-## Refactor to wait in the step function
+## Refactor to wait in the Step Function
 
 <br>
 
@@ -996,7 +990,7 @@ setup(
 ```
 
 ```bash
-python3 setup.py bdist_wheel
+python3 setup.py sdist bdist_wheel
 ```
 
 ???
