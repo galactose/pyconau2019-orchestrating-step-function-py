@@ -519,7 +519,7 @@ Even with just this project template you can build a microservice framework wher
 
 These factories can be deployed in a mirrored fashion in each of your environments for development, integration, staging and production for testing purposes.
 
-With this in mind you go ahead and deploy versions of your application, using the state machines as application factories and you begin your project.
+You now theoretically have enough to start a project, using the state machines as application factories you get going with best intentions.
 
 ---
 layout: standard
@@ -542,12 +542,12 @@ layout: standard
 <br>
 
 <center>
-Pain is never out of season if you go shopping for it -- Tim Ferris
+Pain is never out of season if you go shopping for it -- Tim Ferris, Tribe of Mentors
 </center>
 
 ???
 
-You now theoretically have enough to start a project, you have your requirements and a general set of tools.
+You love serverless so you rush in with best intentions.
 
 Like many projects before it, it grows organically. More features get tacked on to meet requirements.
 
@@ -604,10 +604,10 @@ layout: standard
 - State definitions are in JSON, no YAML option
 - Choice state:
   - State Machine checks for first match in Choices attribute
-  - Undefined variable errors come up in grey and halt
+  - Undefined variable errors come up in grey and halt at runtime
   - No match sends execution to choice state default
-- On State Machine update existing executions use the old version
-- If you need to pass output to a downstream state, make sure you return it
+- On State Machine update existing executions use the original version
+- If your Lambda needs to pass output to a downstream state, make sure all branches return it
 
 ???
 
@@ -642,10 +642,8 @@ layout: standard
   - VPCs etc 
 
 - Validate inputs
- - bounds and types
- - requested resources
-
-<br>
+ - Bounds and types
+ - Requested resources
 
 ```python
 
@@ -798,7 +796,7 @@ layout: standard
 <br>
 
 - Don't block in your Lambda function
-- wait/choice states
+- Wait/Choice states
 - Callback patterns
 
 <center>
