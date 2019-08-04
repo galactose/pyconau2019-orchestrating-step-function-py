@@ -394,37 +394,21 @@ layout: standard
 
 ???
 
-Lets look at the available primitives for State Machines, the state. Each has a type, these include 
-
-wait states where you can just wait a fixed period,
+Lets look at the available primitives for State Machines, the state. Each has a type, these include wait states where you can just wait a fixed period,
 
 choice states where you can use the inputs and outputs of other states to work out where the state the machine should transition to next.
 
-Parallel states which allow execution to occur over two or more branches of the state machine.
+Parallel states which allow execution to occur over two or more branches of the state machine. Pass states allow you to perform meta-actions like modify the information being passed between states.
 
-Pass states allow you to perform meta-actions like modify the information being passed between states.
+The state you will be using the most is likely the task state that triggers an execution of a service integration. The most popular and one I will focus on is Lambda, complete with inputs from previous states and outputs out to successive states. All of these states can also be augmented with exception catch and retry logic, which I will cover later.
 
-The state you will be using the most is likely the task state that triggers an execution of a service integration. The most popular and one I will focus on is Lambda, complete with inputs from previous states and outputs out to successive states.
+Having this you can see some pretty complex behaviour can be expressed with State Machines, you can set waiting loops, have contingency states when things fail, perform tasks in parallel. The main thing really though as the name suggests State Machines provide the piece that was missing from Lambda, the ability to persist state.
 
-All of these states can also be augmented with exception catch and retry logic, which I will cover later.
+Pictured here is an example of a state machine graph. Step functions comes natively with a graph visualisation tool for your defined state machines.
 
-Having this you can see some pretty complex behaviour can be expressed with State Machines, you can set waiting loops, have contingency states when things fail, perform tasks in parallel
+This is one I've written that handles testing for our Customer Deployed Environments, it will deploy our application and wait for the process to complete. It then tracks metrics on time to deploy and whether it was successful or not. It then triggers termination of the environment, on completion tracking the metrics for that also.
 
-the main thing really though as the name suggests State Machines provide the piece that was missing from Lambda, the ability to persist state.
-
-Pictured here is an example of a state machine graph.
-
-Step functions comes natively with a graph visualisation tool for your defined state machines.
-
-This is one I've written that handles testing for our Customer Deployed Environments, it will deploy our application and wait for the process to complete.
-
-It then tracks metrics on time to deploy and whether it was successful or not.
-
-It then triggers termination of the environment, on completion tracking the metrics for that also.
-
-You can also see time-out, failure and success states which dictate the success or failure of the execution of the state machine,
-
-which can also be tracked with metrics via CloudWatch so we can keep a record of any regressions or long running builds.
+You can also see time-out, failure and success states which dictate the success or failure of a machine execution, which can also be tracked with metrics via CloudWatch so we can keep a record of any regressions or long running builds.
 
 ---
 
@@ -623,6 +607,7 @@ layout: standard
   - Undefined variable errors come up in grey and halt
   - No match sends execution to choice state default
 - On State Machine update existing executions use the old version
+- If you need to pass output to a downstream state, make sure you return it
 
 ???
 
@@ -633,6 +618,8 @@ Just a few notes about working with the Step Functions specifically:
 - If a variable referenced in your state definition is undefined in the states JSON object at that point your state machine will stop. This seems to be because of the coupling between Lambda and the State Machines. This can trip you up if there are discrepancies between your state definition and your Lambda code and you won't find out until runtime. On the state machine dashboard this will come up as a halted state in grey.
 
 - If you update your state machine while there are executions (via something like cloudformation) the previous executions will continue to operate on the original version (could be an issue for your service in deployment for long running executions)
+
+- All branches of your Lambda code has to flow to a return statement passing back the results that go on to the next object downstream. You might get some confusing bugs if you have a branch of code that exits early for some case but doesn't pass on expected values.
 
 ---
 template: inverse
@@ -710,27 +697,19 @@ layout: standard
 
 ???
 
-Data flow is a big portion of managing State Machines so here are a couple of general tips I have come across to help keep State Machines manageable.
-
-As mentioned earlier, state machines communicate between states with a JSON object that translates in Python to a dictionary.
-
-All branches of your Lambda function code has to flow to a return statement passing back the results that go on to the next object downstream
+Data flow is a big portion of managing State Machines so here are a couple of general tips I have come across that help. As mentioned earlier, state machines communicate between states with a JSON object that translates in code to a dictionary.
 
 As you can imagine keeping the object small between states will simplify your State Machine and make it easier to track what is happening state to state, not passing on values that are unnecessary will assist with this.
 
-You can manage this with the `OutputPath` option in the State definition, you can limit which portion of the output gets sent to the next state so you can drill down to only have necessary values.
+You can manage this with the `OutputPath` option in the State definition, you can limit which portion of the output gets sent to the next state so you can drill down to only have necessary values. Similarly you can use `InputPath` in the state definition to limit what goes into a states input, which can help with maintaining contexts between your states.
 
-Similarly you can use `InputPath` in the state definition to limit what goes into a states input, which can help with maintaining contexts between your states.
+Another solution to this problem is to find ways to pass data without using the input object. There are three ways I have found to do this:
 
-Another solution to this problem is to find ways to pass data without using the input object.
+If you are using infrastructure as code and building your State Machine with Cloudformation you can add to the `Parameters` state definition attribute which let you modify the state JSON object in place to inject variables. This is useful if you have a test environment and have multiple branches of the same resources being tested next to each other. You can let the Cloudformation know about the branch you are on to scope resources and you can pass the value into the State Machine without having to pass it into the state machine on execution.
 
-There are three ways I have found to do this:
+You can store variables that are related to the account or environment you are operating from in Systems Manager parameters. Doing this you can bind these values to one place, and make reference to them in other parts of your orchestration and not pollute your dictionaries.
 
- - If you are using infrastructure as code and building your State Machine with Cloudformation you can add to the `Parameters` state definition attribute which let you modify the state JSON object in place to inject variables. This is useful if you have a test environment and have multiple branches of the same resources being tested next to each other. You can let the Cloudformation know about the branch you are on to scope resources and you can pass the value into the State Machine without having to pass it into the state machine on execution.
-
- - You can store variables that are related to the account or environment you are operating from in Systems Manager parameters. Doing this you can bind these values to one place, and make reference to them in other parts of your orchestration and not pollute your dictionaries.
-
- - In the case that you need to reference a lot of data you can use S3 and hold the S3 bucket path and access whatever you need there. S3 can hold terabytes of data so if you need that much you probably need to re-architect your solution.
+In the case that you need to reference a lot of data you can use S3 and hold the S3 bucket path and access whatever you need there. S3 can hold terabytes of data so if you need that much you probably need to re-architect your solution.
 
 ---
 layout: standard
@@ -770,6 +749,10 @@ template: inverse
 
 <i class="em em-dancers"></i><i class="em em-twisted_rightwards_arrows"></i>
 
+???
+
+This segues nicely into the next set of tips, involving parallelism. Step functions actually provide a few different levels of parallelism you can take advantage of. What I described previously was the state primitive for parallelism, this is a type of "static" parallelism where the number of threads of execution is already known and are part of the State Machine.
+
 ---
 
 layout: standard
@@ -789,12 +772,6 @@ layout: standard
 </center>
 
 ???
-
-This segues nicely into the next set of tips, involving parallelism.
-
-Step functions actually provide a few different levels of parallelism you can take advantage of.
-
-What I described previously was the state primitive for parallelism, this is a type of "static" parallelism where the number of threads of execution is already known and are part of the State Machine.
 
 An example of this is if you have a state machine that manages the bootstrap of an AWS account you use for orchestration. You know the account needs an S3 bucket to manage configuration and a specific DNS hosted zone. Each can be provisioned in parallel as neither has a dependency on the other. The parallel state can be used in this case. 
 
