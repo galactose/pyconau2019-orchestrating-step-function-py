@@ -436,7 +436,7 @@ layout: standard
 
 So thats all well and good but why would I use this?
 
-The service is highly scalable, it natively allows parallel executions so it's listening for execution requests and can handle a million open requests.
+The service is highly scalable, it natively allows parallel executions so it's listening for execution calls and can handle a million open requests.
 
 You can use Step Functions as the entry point into the logic of your orchestration and be able to handle edge cases when unexpected behaviour arises 
 
@@ -483,7 +483,9 @@ As engineers we always want to automate everything as much as possible, so using
 
 Cloudformation templates is generally your best option for your AWS resources.
 
-The Lambda service requires generating a bundled package containing your source code, if you've used Lambda you will be familiar with this, which means the source and the bundling functionality can also be kept in the repository with your infrastructure definition.
+The Lambda service requires generating a bundled package containing your source code, if you've used Lambda you will be familiar with this.
+
+The source and the bundling functionality can also be kept in the repository with your infrastructure definition.
 
 You can define an interface for your project repo with a Makefile, with actions like build, deploy, install, etc. This way whatever is deploying your services has a common interface to work with.
 
@@ -517,7 +519,7 @@ Even with just this project template you can build a microservice framework wher
 
 These factories can be deployed in a mirrored fashion in each of your environments for development, integration, staging and production for testing purposes.
 
-You now theoretically have enough to start a project, using the state machines as application factories you get going with best intentions.
+Now you theoretically have enough to start a project, using the state machines as application factories you get going with best intentions.
 
 ---
 layout: standard
@@ -540,7 +542,7 @@ layout: standard
 <br>
 
 <center>
-Pain is never out of season if you go shopping for it -- Tim Ferris, Tribe of Mentors
+Pain is never out of season if you go shopping for it -- Timothy Ferriss, Tribe of Mentors
 </center>
 
 ???
@@ -551,7 +553,7 @@ Like many projects before it, it grows organically. More features get tacked on 
 
 Very slowly you end up with a bit of a beast of a solution with one or more of the problems listed above...
 
-A lot of pressure can be put on a project, quality can fall by the wayside and best practices can go out the window to get a first iteration of a project completed.
+A lot of pressure can be put on a project, quality can fall by the wayside and best practices can go out the window to get a first iteration completed.
 
 ---
 
@@ -560,7 +562,7 @@ template: inverse
 
 ???
 
-So, all this what are some things you can do to simplify a complicated code situations like this?
+So, with all this what are some things you can do to simplify a complicated code project like this?
 
 Here are a few recommendations based on what I have come across working with serverless orchestration and Step Functions.
 
@@ -588,7 +590,7 @@ I'll start with your standard project grooming, if you have been a developer for
 
 - Setup coverage reports to get an idea of how well covered your code is with tests. Your reports can be bundled with releases, even if you are not enforcing a coverage percentage floor you can let people decide to use your release based on whats available and show you are performing due diligence.
 
-- Git offers a lot of workflow automation and hooking linting and other types of checking into your source control solution can make these things happen behind the scenes
+- Git offers a lot of workflow automation and hooking linting and other types of checking into your source control solution can make these things happen as a course of your ways of working.
 
 - Github Apps and integrations, this one is a recent one for me, another team member recently introduced automated release drafting and pull request categorisation based off commit messages. Offloading project burdens to automation will definitely help out.
 
@@ -611,11 +613,11 @@ layout: standard
 
 Just a few notes about working with the Step Functions specifically:
 
-- Defining a state machine needs to be done in JSON, whereas cloudformation can generally be in YAML, which is a little inconsistent but not a deal breaker
+- Defining a state machine needs to be done in JSON, whereas cloudformation can generally be in YAML, which is a little inconsistent but not a deal breaker, something to be aware of
 
 - For choice states, if a variable referenced in your state definition is undefined in the JSON object at that point your state machine will stop. This seems to be because of the coupling between Lambda and the State Machines. This can trip you up if there are discrepancies between your state definition and your Lambda code and you won't find out until runtime. On the state machine dashboard this will come up as a halted state in grey.
 
-- If you update your state machine while there are executions (via something like cloudformation) the previous executions will continue to operate on the original version (could be an issue for your service in deployment for long running executions)
+- If you update your state machine while there are executions (via something like Cloudformation) the previous executions will continue to operate on the original version (could be an issue for your service in deployment for long running executions)
 
 - All branches of your Lambda code has to flow to a return statement passing back the results that go on to the next object downstream. You might get some confusing bugs if you have a branch of code that exits early for some case but doesn't pass on expected values.
 
@@ -773,9 +775,9 @@ An example of this is if you have a state machine that manages the bootstrap of 
 
 The next way to handle parallelism is by nesting State Machines, you can theoretically have x concurrent executions of a state machine so you can hand off x tasks to another state machine that can handle each uniformly and pass back the results through some shared medium like SQS or S3.
 
-Where the previous method of parallelism is static this is more dynamic since it is used for cases where you only know how many threads of execution you need at runtime. Warning also be careful with this method as it would be easy to hit API or resource limits or you may find out a month later that this process has kicked you square in the credit card.
+Where the previous method of parallelism is static this is more dynamic since it is used for cases where you only know how many threads of execution you need at runtime. Warning also be careful with this method as it would be easy to hit API or resource limits or you may find out a month later that this process has hit you square in the credit card.
 
-A good example of dynamic parallelism is for migrating servers. I spent some time a year back working on the automation of server migrations using a recent tool called CloudEndure. We had manager scripts that would execute the same worker scripts once for each server being migrated. Using Step Functions you could have a managing State Machine that calls a worker migration state machine that performs all the underlying tasks of migration into AWS without knowing at the beginning how many servers were being moved over in that wave.
+A good example of dynamic parallelism is for migrating servers. I spent some time a year back working on the automation of server migrations and I wish I could have used this pattern. Using Step Functions you could have a managing State Machine that calls a worker migration state machine that performs all the underlying tasks of migration into AWS without knowing at the beginning how many servers were being moved over in that wave.
 
 Finally AWS recently released activity workers. I personally haven't used the service but you can treat state machines as activities, where a manager process will hand off a token to a worker process, the manager can then block until the worker process has performed its task. It then returns it's token indicating completion.
 
@@ -804,7 +806,7 @@ layout: standard
 ???
 Another easy one, if you are moving over to Step Functions from a script or some other method of orchestrating, if you wait for resources do it in the Step Functions. They are designed to do it. Wait state primitives exist. Lambda functions can execute for a maximum for 15 minutes but you are being charged for those 15 minutes
 
-Here's an example of a pattern we use for waiting for resources to become available, a simple wait, status check, choice group that blocks until something is ready or fails or times out. Here I'm using in the bootstrap of an AWS account with standard infrastructure resources for a disaster recovery scenario. If we ever need to provision an AWS account I can be certain all the required resources are available using state machines.
+Here's an example of a pattern we use for waiting for resources to become available, a simple wait, status check, choice group that blocks until something is ready or fails or times out. Here I'm using it in the bootstrap of an AWS account with standard infrastructure resources for a disaster recovery scenario. If we ever need to provision an AWS account I can be certain all the required resources are available using state machines.
 
 Another consideration with Step functions is if you are waiting for human approval, this is supported in Step Functions with the callback pattern. You can implement states that block until a token is returned
 
@@ -1115,7 +1117,7 @@ I've given a run down of what the service is, how it works and some details of t
 
 If you try it and your project grows you might need to implement some measures to help scale it out, which I covered.
 
-This wasn't a complete guide to Step Functions, it is a very feature rich service, but is hopefully enough for anyone considering using it.
+This wasn't a complete guide to Step Functions as it is a very feature rich service, but is hopefully enough for anyone considering using it.
 
 I've linked to the slides here if anyone is curious.
 
