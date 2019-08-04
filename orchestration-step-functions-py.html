@@ -615,7 +615,7 @@ Just a few notes about working with the Step Functions specifically:
 
 - Defining a state machine needs to be done in JSON, whereas cloudformation can generally be in YAML, which is a little inconsistent but not a deal breaker
 
-- If a variable referenced in your state definition is undefined in the states JSON object at that point your state machine will stop. This seems to be because of the coupling between Lambda and the State Machines. This can trip you up if there are discrepancies between your state definition and your Lambda code and you won't find out until runtime. On the state machine dashboard this will come up as a halted state in grey.
+- For choice states, if a variable referenced in your state definition is undefined in the JSON object at that point your state machine will stop. This seems to be because of the coupling between Lambda and the State Machines. This can trip you up if there are discrepancies between your state definition and your Lambda code and you won't find out until runtime. On the state machine dashboard this will come up as a halted state in grey.
 
 - If you update your state machine while there are executions (via something like cloudformation) the previous executions will continue to operate on the original version (could be an issue for your service in deployment for long running executions)
 
@@ -1009,7 +1009,7 @@ zip -jrq9 lambda.zip src/*
 
 ???
 
-Once this is available remotely you can pull these helpers into the pip virtual environment and they can be bundled into the Lambda zip bundle. From here these can be uploaded and referenced in your cloudformation, integrating them into your orchestration.
+Once this is available remotely you can pull these helpers into the pipenv virtual environment and they can be bundled into the Lambda zip bundle. From here these can be uploaded and referenced in your cloudformation, integrating them into your orchestration.
 
 This is very powerful as out of the box you get libraries that can be used across your state machines, if you have designed nice abstractions for your modular resources libraries are a good place to store and reuse these.
 
