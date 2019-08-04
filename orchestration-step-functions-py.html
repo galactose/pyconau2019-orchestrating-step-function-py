@@ -297,9 +297,7 @@ An example of this is having serverless backup tasks,
     serverless nightly on/off switches for your non-critical infrastructure
     or serverless compliance tools.
 
-So if you have some classic app in a server you can orchestrate around it with step functions,
-
-manage the state of the servers with SSM Run Commands and perform infrastructure maintenance tasks with services like Lambda and CloudWatch events.
+So if you have some classic app in a server you can orchestrate around it with step functions, manage the state of the servers with SSM Run Commands and perform infrastructure maintenance tasks with services like Lambda and CloudWatch events.
 
 ---
 layout: standard
@@ -324,7 +322,7 @@ def lambda_handler(event, context):
 
 ???
 
-What's the standard operating pattern for Lambda?
+What's the standard way of using Lambda?
 
 So if you've not used Lambda before the code part of the service essentially has a referenced entry point where you can take in some arguments from an external service into a dictionary usually labelled `event`, perform some work in the handler or called functions or modules imported into the package and return a computational result.
 
@@ -394,19 +392,19 @@ layout: standard
 
 ???
 
-Lets look at the available primitives for State Machines, the state. Each has a type, these include wait states where you can just wait a fixed period,
+Lets look at the available primitives for State Machines, these are states. Each has a type. These include wait states where you can just wait a fixed period,
 
 choice states where you can use the inputs and outputs of other states to work out where the state the machine should transition to next.
 
 Parallel states which allow execution to occur over two or more branches of the state machine. Pass states allow you to perform meta-actions like modify the information being passed between states.
 
-The state you will be using the most is likely the task state that triggers an execution of a service integration. The most popular and one I will focus on is Lambda, complete with inputs from previous states and outputs out to successive states. All of these states can also be augmented with exception catch and retry logic, which I will cover later.
+The state you will be using the most is likely the task state that triggers an execution of a service integration. The most popular and one I will focus on is Lambda, complete with inputs from previous states and outputs out to successive states. All of these states can also be augmented with exception catch and retry logic or flow control logic which I will cover later.
 
 Having this you can see some pretty complex behaviour can be expressed with State Machines, you can set waiting loops, have contingency states when things fail, perform tasks in parallel. The main thing really though as the name suggests State Machines provide the piece that was missing from Lambda, the ability to persist state.
 
 Pictured here is an example of a state machine graph. Step functions comes natively with a graph visualisation tool for your defined state machines.
 
-This is one I've written that handles testing for our Customer Deployed Environments, it will deploy our application and wait for the process to complete. It then tracks metrics on time to deploy and whether it was successful or not. It then triggers termination of the environment, on completion tracking the metrics for that also.
+This is one I've written that handles testing for our Customer Deployed Environments, it will deploy our application and wait for the process to complete. It then tracks time to deploy and whether it was successful or not. It then terminations the environment, and tracks the time for that also.
 
 You can also see time-out, failure and success states which dictate the success or failure of a machine execution, which can also be tracked with metrics via CloudWatch so we can keep a record of any regressions or long running builds.
 
